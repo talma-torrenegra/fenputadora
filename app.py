@@ -72,7 +72,7 @@ if user_message:
             contexto = obtener_contexto_wiki(tema)
             break
 
-    prompt = prompt = f"""
+    prompt = f"""
 Eres 'Fenputadora', una profesora experta en Sistemas Digitales y Tecnología.
 
 MODO PROFESINAL :
@@ -95,11 +95,6 @@ Pregunta del estudiante: {user_message}
 
 Respuesta:
 """
-
-    Contexto: {contexto}
-
-    Pregunta: {user_message}
-    """
 
     try:
         response = model.generate_content(prompt)
