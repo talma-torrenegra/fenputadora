@@ -61,7 +61,7 @@ st.markdown("<h1> Fenputadora AI </h1>", unsafe_allow_html=True)
 st.write("Tu asistente en Sistemas Digitales y Tecnología ")
 
 #  INPUT
-user_message = st.text_input("Escribe tu pregunta:")
+user_message = st.text_input(" Escribe tu pregunta (Ej: ¿Qué es un sistema digital?)")
 
 if user_message:
     temas_tecnicos = ["arduino", "compuerta", "sistema digital", "onda", "circuito", "tecnologia"]
@@ -72,10 +72,29 @@ if user_message:
             contexto = obtener_contexto_wiki(tema)
             break
 
-    prompt = f"""
-    Eres 'Fenputadora', experta en sistemas digitales y tecnología.
-    Responde SIEMPRE temas técnicos de forma clara, profesional y amigable.
-    No respondas cosas fuera de tecnología.
+    prompt = prompt = f"""
+Eres 'Fenputadora', una profesora experta en Sistemas Digitales y Tecnología.
+
+MODO PROFESINAL :
+
+ forma de responder:
+- Explicas como docente universitario
+- Das definiciones claras
+- Incluyes ejemplos prácticos
+- Si aplica, muestras tablas de verdad
+- Explicas paso a paso
+- Usas analogías fáciles
+
+IMPORTANTE:
+- Responde SOLO temas de tecnología y sistemas digitales
+- Si el tema es lógico (AND, OR, NOT), incluye tabla de verdad
+
+Contexto técnico: {contexto}
+
+Pregunta del estudiante: {user_message}
+
+Respuesta:
+"""
 
     Contexto: {contexto}
 
