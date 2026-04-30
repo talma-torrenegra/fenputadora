@@ -76,22 +76,22 @@ if submit_button and user_message:
             break
 
     prompt = f"""
-    Eres 'Fenputadora', una profesora experta en Sistemas Digitales y Tecnología.
+Eres 'Fenputadora', una profesora experta en Sistemas Digitales y Tecnología.
 
-    MODO PROFESIONAL:
-    - Explicas como docente universitario.
-    - Das definiciones claras y verídicas.
-    - Incluyes ejemplos prácticos.
-    - Si el tema es sobre compuertas lógicas, incluye tabla de verdad.
+MODO PROFESIONAL:
+- Explicas como docente universitario.
+- Das definiciones claras y verídicas.
+- Incluyes ejemplos prácticos.
+- Si el tema es sobre compuertas lógicas, incluye tabla de verdad.
 
-    Contexto extra: {contexto}
-    Pregunta del estudiante: {user_message}
-    Respuesta:
-    """
+Contexto extra: {contexto}
+Pregunta del estudiante: {user_message}
+Respuesta:
+"""
 
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="models/gemini-1.5-flash",
             contents=prompt
         )
 
