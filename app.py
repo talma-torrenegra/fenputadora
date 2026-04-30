@@ -1,6 +1,6 @@
 import streamlit as st
 import wikipediaapi
-import google.generativeai as genai
+from google import genai
 
 # 1. CONFIGURACIÓN DE API Y MODELO
 GENAI_KEY = st.secrets.get("GENAI_KEY", None)
@@ -9,10 +9,7 @@ if not GENAI_KEY:
     st.error("Falta la API KEY en secrets")
     st.stop()
 
-genai.configure(api_key=GENAI_KEY)
-
-#  MODELO  (más compatible)
-model = genai.GenerativeModel('gemini-1.0-pro')
+client = genai.Client(api_key=GENAI_KEY)
 
 # 2. ESTILO PERSONALIZADO (ROSADO NEÓN + NEGRO)
 st.markdown("""
@@ -40,7 +37,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
 # 3. CONFIGURACIÓN DE WIKIPEDIA
 wiki = wikipediaapi.Wikipedia(
     language='es',
@@ -52,16 +48,13 @@ def obtener_contexto_wiki(tema):
         page = wiki.page(tema)
         if page.exists():
             return page.summary[:600]
-        else:
-            return ""
-    except Exception:
+    except:
         return ""
-
+    return ""
 
 # 4. MEMORIA DE CHAT
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
 
 # 5. INTERFAZ DE USUARIO
 st.markdown("<h1> Fenputadora AI </h1>", unsafe_allow_html=True)
@@ -71,9 +64,9 @@ with st.form(key='chat_form', clear_on_submit=True):
     user_message = st.text_input("Escribe tu pregunta (Ej: ¿Qué es una compuerta AND?)")
     submit_button = st.form_submit_button(label='Enviar')
 
-
 # 6. LÓGICA DE RESPUESTA
 if submit_button and user_message:
+
     temas_tecnicos = ["arduino", "compuerta", "sistema digital", "onda", "circuito", "tecnologia", "binario"]
     contexto = ""
 
@@ -84,15 +77,12 @@ if submit_button and user_message:
 
     prompt = f"""
     Eres 'Fenputadora', una profesora experta en Sistemas Digitales y Tecnología.
-    
+
     MODO PROFESIONAL:
     - Explicas como docente universitario.
     - Das definiciones claras y verídicas.
     - Incluyes ejemplos prácticos.
-    - Si el tema es sobre compuertas lógicas (AND, OR, NOT, etc.), incluye SIEMPRE la tabla de verdad.
-    - Usas analogías fáciles de entender.
-
-    Restricción: Responde ÚNICAMENTE temas de tecnología y sistemas digitales.
+    - Si el tema es sobre compuertas lógicas, incluye tabla de verdad.
 
     Contexto extra: {contexto}
     Pregunta del estudiante: {user_message}
@@ -100,26 +90,18 @@ if submit_button and user_message:
     """
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
 
-        # 🔥 MANEJO ROBUSTO DE RESPUESTA
-        reply = ""
-        if hasattr(response, "text") and response.text:
-            reply = response.text
-        elif hasattr(response, "candidates"):
-            try:
-                reply = response.candidates[0].content.parts[0].text
-            except:
-                reply = "La IA respondió, pero no pude procesar el texto."
-        else:
-            reply = "No se recibió respuesta del modelo."
+        reply = response.text
 
     except Exception as e:
         reply = f"Error de conexión: {str(e)}"
 
     st.session_state.messages.append(("Tú", user_message))
     st.session_state.messages.append(("Fenputadora", reply))
-
 
 # 7. VISUALIZACIÓN DEL CHAT
 chat_placeholder = st.container()
