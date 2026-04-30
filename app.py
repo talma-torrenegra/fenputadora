@@ -11,9 +11,8 @@ if not GENAI_KEY:
 
 genai.configure(api_key=GENAI_KEY)
 
-# 🔥 MODELO CORREGIDO (más compatible)
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
-
+#  MODELO  (más compatible)
+model = genai.GenerativeModel('gemini-1.0-pro')
 
 # 2. ESTILO PERSONALIZADO (ROSADO NEÓN + NEGRO)
 st.markdown("""
