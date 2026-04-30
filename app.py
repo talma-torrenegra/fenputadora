@@ -2,7 +2,7 @@ import streamlit as st
 import wikipediaapi
 import google.generativeai as genai
 
-#  API
+# 1. CONFIGURACIÓN DE API Y MODELO
 GENAI_KEY = st.secrets.get("GENAI_KEY", None)
 
 if not GENAI_KEY:
@@ -10,63 +10,114 @@ if not GENAI_KEY:
     st.stop()
 
 genai.configure(api_key=GENAI_KEY)
-# Cambia esta línea para asegurar compatibilidad
-model = genai.GenerativeModel('gemini-1.5-flash') 
+# Usamos gemini-1.5-flash para mayor estabilidad y velocidad
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# ... (todo tu código de estilo y Wikipedia igual) ...
+# 2. ESTILO PERSONALIZADO (ROSADO NEÓN + NEGRO)
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #0a0a0a;
+    }
+    h1 {
+        color: #ff4df0;
+        text-align: center;
+        text-shadow: 0 0 10px #ff4df0;
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .chat-box {
+        background-color: #1a1a1a;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ff4df0;
+        box-shadow: 0 0 8px #ff4df0;
+        color: white;
+    }
+    .user-label { color: #00f2ff; font-weight: bold; }
+    .bot-label { color: #ff4df0; font-weight: bold; }
+    </style>
+""", unsafe_allow_html=True)
 
-# INPUT
-user_message = st.text_input(" Escribe tu pregunta (Ej: ¿Qué es un sistema digital?)")
+# 3. CONFIGURACIÓN DE WIKIPEDIA
+wiki = wikipediaapi.Wikipedia(
+    language='es',
+    user_agent="FenputadoraBot/1.0"
+)
 
-if user_message:
-    temas_tecnicos = ["arduino", "compuerta", "sistema digital", "onda", "circuito", "tecnologia"]
+def obtener_contexto_wiki(tema):
+    try:
+        page = wiki.page(tema)
+        if page.exists():
+            return page.summary[:600]
+    except:
+        return ""
+    return ""
+
+# 4. MEMORIA DE CHAT
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# 5. INTERFAZ DE USUARIO
+st.markdown("<h1> Fenputadora AI </h1>", unsafe_allow_html=True)
+st.write("Tu asistente en Sistemas Digitales y Tecnología")
+
+# Formulario para manejar el input y limpiar la caja tras enviar
+with st.form(key='chat_form', clear_on_submit=True):
+    user_message = st.text_input("Escribe tu pregunta (Ej: ¿Qué es una compuerta AND?)")
+    submit_button = st.form_submit_button(label='Enviar')
+
+# 6. LÓGICA DE RESPUESTA
+if submit_button and user_message:
+    temas_tecnicos = ["arduino", "compuerta", "sistema digital", "onda", "circuito", "tecnologia", "binario"]
     contexto = ""
 
+    # Buscar contexto en Wikipedia
     for tema in temas_tecnicos:
         if tema in user_message.lower():
             contexto = obtener_contexto_wiki(tema)
             break
 
+    # Definición del Prompt (ahora dentro del flujo lógico)
     prompt = f"""
     Eres 'Fenputadora', una profesora experta en Sistemas Digitales y Tecnología.
+    
     MODO PROFESIONAL:
-    - Explicas como docente universitario
-    - Das definiciones claras
-    - Incluyes ejemplos prácticos
-    - Si aplica, muestras tablas de verdad
-    - Explicas paso a paso
-    - Usas analogías fáciles
+    - Explicas como docente universitario.
+    - Das definiciones claras y verídicas.
+    - Incluyes ejemplos prácticos.
+    - Si el tema es sobre compuertas lógicas (AND, OR, NOT, etc.), incluye SIEMPRE la tabla de verdad.
+    - Usas analogías fáciles de entender.
 
-    IMPORTANTE:
-    - Responde SOLO temas de tecnología y sistemas digitales
-    - Si el tema es lógico (AND, OR, NOT), incluye tabla de verdad
+    Restricción: Responde ÚNICAMENTE temas de tecnología y sistemas digitales.
 
-    Contexto técnico: {contexto}
+    Contexto extra: {contexto}
     Pregunta del estudiante: {user_message}
     Respuesta:
     """
 
-    # MOVEMOS EL TRY ADENTRO DEL IF USER_MESSAGE
     try:
         response = model.generate_content(prompt)
-        
-        if response.candidates:
-            reply = response.text # Forma más directa de obtener el texto
+        if response.text:
+            reply = response.text
         else:
-            reply = "No pude generar respuesta, intenta otra vez"
-
+            reply = "No pude generar una respuesta clara. Prueba reformulando la pregunta."
     except Exception as e:
-        reply = f"Error: {e}"
-    
-    # Guardar conversación (dentro del IF para que solo guarde si hubo mensaje)
+        reply = f"Error de conexión: {str(e)}"
+
+    # Guardar en el historial
     st.session_state.messages.append(("Tú", user_message))
     st.session_state.messages.append(("Fenputadora", reply))
 
-# MOSTRAR CHAT
-for sender, msg in st.session_state.messages:
-    st.markdown(f"""
-    <div class="chat-box">
-        <b>{sender}:</b><br>{msg}
-    </div>
-    """, unsafe_allow_html=True)
-    """, unsafe_allow_html=True)
+# 7. VISUALIZACIÓN DEL CHAT (Envoltorio para evitar errores de Nodo)
+chat_placeholder = st.container()
+
+with chat_placeholder:
+    for sender, msg in st.session_state.messages:
+        label_class = "user-label" if sender == "Tú" else "bot-label"
+        st.markdown(f"""
+            <div class="chat-box">
+                <span class="{label_class}">{sender}:</span><br>
+                {msg}
+            </div>
+        """, unsafe_allow_html=True)
