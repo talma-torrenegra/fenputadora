@@ -10,8 +10,7 @@ if not GENAI_KEY:
     st.stop()
 
 genai.configure(api_key=GENAI_KEY)
-genai.GenerativeModel('gemini-1.5-pro')
-
+model = genai.GenerativeModel('gemini-1.5-pro')
 #  ESTILO PERSONALIZADO (ROSADO NEÓN + NEGRO)
 st.markdown("""
     <style>
