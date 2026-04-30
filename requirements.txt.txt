@@ -1,3 +1,0 @@
-streamlit
-google-generativeai
-wikipedia-api==0.6.0
