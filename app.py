@@ -95,13 +95,16 @@ Pregunta del estudiante: {user_message}
 
 Respuesta:
 """
+try:
+    response = model.generate_content(prompt)
 
-    try:
-        response = model.generate_content(prompt)
-        reply = response.text
-    except:
-        reply = "Error en la respuesta"
+    if response.candidates:
+        reply = response.candidates[0].content.parts[0].text
+    else:
+        reply = "No pude generar respuesta, intenta otra vez"
 
+except Exception as e:
+    reply = f"Error: {e}"
     # Guardar conversación
     st.session_state.messages.append(("Tú", user_message))
     st.session_state.messages.append(("Fenputadora", reply))
